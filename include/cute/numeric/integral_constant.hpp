@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/numeric/math.hpp>      // cute::max, etc
 #include <cute/util/print.hpp>        // cute::print
 #include <cute/util/type_traits.hpp>  // __CUTE_REQUIRES, cute::is_std_integral
@@ -476,7 +478,7 @@ CUTE_HOST_DEVICE void print(C<Value>) {
   ::cute::print(Value);
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <auto t>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, C<t> const&) {
   return os << "_" << t;

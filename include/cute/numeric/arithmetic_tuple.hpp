@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 
 #include <cute/container/tuple.hpp>
@@ -478,7 +480,7 @@ CUTE_HOST_DEVICE void print(ScaledBasis<T,N> const& e)
   print(e.value()); printf("@%d", N);
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class ArithTuple>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, ArithmeticTupleIterator<ArithTuple> const& iter)
 {
@@ -524,7 +526,7 @@ struct tuple_element<I, const cute::ArithmeticTuple<T...>>
 namespace std
 {
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 template <class... _Tp>
 struct tuple_size;
 

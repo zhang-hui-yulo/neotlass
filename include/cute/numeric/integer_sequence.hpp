@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 #include <cute/util/type_traits.hpp>
 #include <cute/numeric/integral_constant.hpp>

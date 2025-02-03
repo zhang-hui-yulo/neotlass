@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 #include <cute/arch/mma.hpp>
 #include <cute/atom/mma_traits.hpp>
@@ -1111,11 +1113,5 @@ print_svg(TiledMMA<Args...> const &mma) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <cute/atom/mma_traits_sm61.hpp>
-#include <cute/atom/mma_traits_sm70.hpp>
-#include <cute/atom/mma_traits_sm75.hpp>
-#include <cute/atom/mma_traits_sm80.hpp>
-#include <cute/atom/mma_traits_sm90.hpp>
-#include <cute/atom/mma_traits_sm90_gmma.hpp>
-#include <cute/atom/mma_traits_sm100.hpp> 
+#include <cute/atom/mma_traits_gfx11.hpp>
 ////////////////////////////////////////////////////////////////////////////////////////////////////

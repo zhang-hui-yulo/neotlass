@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                     // CUTE_HOST_DEVICE, CUTE_GCC_UNREACHABLE
 #include <cute/layout.hpp>                     // cute::tuple
 #include <cute/numeric/integral_constant.hpp>  // cute::true_type, cute::false_type, cute::Int
@@ -650,7 +652,7 @@ CUTE_HOST_DEVICE void print(ComposedLayout<A,O,B> const& layout)
   print(layout.layout_a()); print(" o "); print(layout.offset()); print(" o "); print(layout.layout_b());
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class A, class O, class B>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, ComposedLayout<A,O,B> const& layout)
 {

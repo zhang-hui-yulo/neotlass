@@ -41,6 +41,8 @@
 
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                     // CUTE_HOST_DEVICE
 #include <cute/layout.hpp>                     // cute::Shape
 #include <cute/layout_composed.hpp>            // cute::is_composed_layout
@@ -1153,7 +1155,7 @@ CUTE_HOST_DEVICE void print_tensor(Tensor<Engine,Layout> const& tensor, bool pri
   }
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class Engine, class Layout>
 CUTE_HOST std::ostream& print_tensor_os(std::ostream& os, Tensor<Engine,Layout> const& tensor)
 {
@@ -1200,7 +1202,7 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, Tensor<Engine,Layout> const
   os << tensor.layout() << std::endl;
   return print_tensor_os(os, tensor);
 }
-#endif // !defined(__CUDACC_RTC__)
+#endif // !defined(__HIPCC_RTC__)
 
 } // end namespace cute
 

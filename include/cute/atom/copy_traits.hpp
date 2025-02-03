@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/arch/copy.hpp>
 
 #include <cute/tensor_impl.hpp>

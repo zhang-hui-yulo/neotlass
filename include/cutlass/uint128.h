@@ -34,7 +34,9 @@
 */
 #pragma once
 
-#if defined(__CUDACC_RTC__)
+// hip passed
+
+#if defined(__HIPCC_RTC__)
 #include <cuda/std/cstdint>
 #else
 #include <cstdint>
@@ -47,14 +49,14 @@
 #include "cutlass/cutlass.h"
 
 /// Optionally enable GCC's built-in type
-#if (defined(__x86_64) || defined (__aarch64__)) && !(defined(__CUDA_ARCH__) && ((__CUDACC_VER_MAJOR__ <= 10) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ <= 4)))) && defined(__GNUC__)
+#if (defined(__x86_64) || defined (__aarch64__)) && defined(__GNUC__)
 #define CUTLASS_UINT128_NATIVE
-#elif !defined(__CUDA_ARCH__)
+#elif !defined(__HIP_DEVICE_COMPILE__)
 // No custom support for 128b arithmetic on device
 #if defined(_MSC_VER) && defined(_M_AMD64)
 #define CUTLASS_INT128_ARITHMETIC
 #include <intrin.h>
-#if _MSC_VER >= 1920 && !defined(__CUDA_ARCH__)
+#if _MSC_VER >= 1920 && !defined(__HIP_DEVICE_COMPILE__) && !defined(__clang__)
 #define CUTLASS_INT128_ARITHMETIC_DIV
 #include <immintrin.h>
 #endif
@@ -115,7 +117,7 @@ struct alignas(16) uint128_t
   CUTLASS_HOST_DEVICE
   static void exception()
   {
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
   asm volatile ("  brkpt;\n");
 #else
   // throw std::runtime_error("Not yet implemented.");

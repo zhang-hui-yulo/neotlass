@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/tensor_impl.hpp>  // cute::Tensor
 #include <cute/pointer.hpp>      // cute::is_rmem
 #include <cute/arch/mma.hpp>     // cute::UniversalFMA

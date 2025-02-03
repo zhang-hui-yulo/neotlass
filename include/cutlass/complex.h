@@ -31,12 +31,14 @@
 
 #pragma once
 
-#include <cuComplex.h>
+// hip passed
 
-#include <cuda_fp16.h>
+#include <hip/hip_complex.h>
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/cstdint>
+#include <hip/hip_fp16.h>
+
+#if defined(__HIPCC_RTC__)
+#include <hip/std/cstdint>
 #else
 #include <cstdint>
 #endif
@@ -50,7 +52,7 @@
 
 #include "cutlass/fast_math.h"
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #include <iosfwd>
 #endif
 
@@ -86,49 +88,49 @@ struct InvertComplexTransform<ComplexTransform::kConjugate> {
 // Accessors for CUDA complex types
 //
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 /// Returns the real part of the complex number
 CUTLASS_HOST_DEVICE
-float const &real(cuFloatComplex const &z) { return z.x; }
-
-/// Returns the real part of the complex number
-CUTLASS_HOST_DEVICE
-float &real(cuFloatComplex &z) { return z.x; }
+float const &real(hipFloatComplex const &z) { return z.x; }
 
 /// Returns the real part of the complex number
 CUTLASS_HOST_DEVICE
-double const &real(cuDoubleComplex const &z) { return z.x; }
+float &real(hipFloatComplex &z) { return z.x; }
 
 /// Returns the real part of the complex number
 CUTLASS_HOST_DEVICE
-double &real(cuDoubleComplex &z) { return z.x; }
+double const &real(hipDoubleComplex const &z) { return z.x; }
+
+/// Returns the real part of the complex number
+CUTLASS_HOST_DEVICE
+double &real(hipDoubleComplex &z) { return z.x; }
 
 /// Returns the imaginary part of the complex number
 CUTLASS_HOST_DEVICE
-float const &imag(cuFloatComplex const &z) { return z.y; }
+float const &imag(hipFloatComplex const &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
 CUTLASS_HOST_DEVICE
-float &imag(cuFloatComplex &z) { return z.y; }
+float &imag(hipFloatComplex &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
 CUTLASS_HOST_DEVICE
-double const &imag(cuDoubleComplex const &z) { return z.y; }
+double const &imag(hipDoubleComplex const &z) { return z.y; }
 
 /// Returns the imaginary part of the complex number
 CUTLASS_HOST_DEVICE
-double &imag(cuDoubleComplex &z) { return z.y; }
+double &imag(hipDoubleComplex &z) { return z.y; }
 
 // Returns the conjugate of the complex number
-CUTLASS_HOST_DEVICE cuFloatComplex
-conj(cuFloatComplex const& z) {
-  return make_cuFloatComplex(z.x, -z.y);
+CUTLASS_HOST_DEVICE hipFloatComplex
+conj(hipFloatComplex const& z) {
+  return make_hipFloatComplex(z.x, -z.y);
 }
 
 // Returns the conjugate of the complex number
-CUTLASS_HOST_DEVICE cuDoubleComplex
-conj(cuDoubleComplex const& z) {
-  return make_cuDoubleComplex(z.x, -z.y);
+CUTLASS_HOST_DEVICE hipDoubleComplex
+conj(hipDoubleComplex const& z) {
+  return make_hipDoubleComplex(z.x, -z.y);
 }
 #endif
 
@@ -178,14 +180,14 @@ class complex
   complex(complex<A> const &z) : _real(static_cast<T>(z.real())), _imag(static_cast<T>(z.imag())) {}
 
 
-  #if !defined(__CUDACC_RTC__)
+  #if !defined(__HIPCC_RTC__)
   /// Conversion from cuFloatComplex
   CUTLASS_HOST_DEVICE
-  complex(cuFloatComplex const &z) : _real(static_cast<T>(cuCrealf(z))), _imag(static_cast<T>(cuCimagf(z))) {}
+  complex(hipFloatComplex const &z) : _real(static_cast<T>(hipCrealf(z))), _imag(static_cast<T>(hipCimagf(z))) {}
 
   /// Conversion from cuDoubleComplex
   CUTLASS_HOST_DEVICE
-  complex(cuDoubleComplex const &z) : _real(static_cast<T>(cuCreal(z))), _imag(static_cast<T>(cuCimag(z))) {}
+  complex(hipDoubleComplex const &z) : _real(static_cast<T>(hipCreal(z))), _imag(static_cast<T>(hipCimag(z))) {}
   #endif
 
   /// Equality operator
@@ -317,14 +319,14 @@ class complex
   CUTLASS_HOST_DEVICE
   void imag(T imag) { _imag = imag; }
 
-  #if !defined(__CUDACC_RTC__)
+  #if !defined(__HIPCC_RTC__)
   /// Converts to cuFloatComplex
   CUTLASS_HOST_DEVICE
-  explicit operator cuFloatComplex() const { return make_cuFloatComplex(float(real()), float(imag())); }
+  explicit operator hipFloatComplex() const { return make_hipFloatComplex(float(real()), float(imag())); }
 
   /// Converts to cuDoubleComplex
   CUTLASS_HOST_DEVICE
-  explicit operator cuDoubleComplex() const { return make_cuDoubleComplex(real(), imag()); }
+  explicit operator hipDoubleComplex() const { return make_hipDoubleComplex(real(), imag()); }
   #endif
 };
 
@@ -416,7 +418,7 @@ CUTLASS_HOST_DEVICE auto imag(T z) {
 // Output operators
 //
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <typename T>
 std::ostream &operator<<(std::ostream &out, complex<T> const &z) {
   T _r = real(z);
@@ -773,20 +775,20 @@ struct conjugate<complex<T>>  {
   }
 };
 
-#if ! defined(__CUDACC_RTC__)
+#if ! defined(__HIPCC_RTC__)
 template <>
-struct conjugate<cuFloatComplex>  {
+struct conjugate<hipFloatComplex>  {
   CUTLASS_HOST_DEVICE
-  cuFloatComplex operator()(cuFloatComplex const& z) const {
-    return make_cuFloatComplex(z.x, -z.y);
+  hipFloatComplex operator()(hipFloatComplex const& z) const {
+    return make_hipFloatComplex(z.x, -z.y);
   }
 };
 
 template <>
-struct conjugate<cuDoubleComplex>  {
+struct conjugate<hipDoubleComplex>  {
   CUTLASS_HOST_DEVICE
-  cuDoubleComplex operator()(cuDoubleComplex const& z) const {
-    return make_cuDoubleComplex(z.x, -z.y);
+  hipDoubleComplex operator()(hipDoubleComplex const& z) const {
+    return make_hipDoubleComplex(z.x, -z.y);
   }
 };
 #endif

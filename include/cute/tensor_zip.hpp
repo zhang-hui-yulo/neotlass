@@ -31,6 +31,8 @@
 
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>           // CUTE_HOST_DEVICE
 #include <cute/tensor_impl.hpp>      // cute::Tensor
 #include <cute/container/tuple.hpp>  // cute::tuple

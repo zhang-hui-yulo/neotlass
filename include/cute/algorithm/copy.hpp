@@ -102,67 +102,6 @@ copy_if(Copy_Atom<CopyArgs...>       const& copy_atom,
 }
 
 //
-// copy_if -- AutoCopyAsync
-//
-template <class PrdTensor,
-          class SrcEngine, class SrcLayout,
-          class DstEngine, class DstLayout>
-CUTE_HOST_DEVICE
-void
-copy_if(AutoCopyAsync                const& cpy,
-        PrdTensor                    const& pred,
-        Tensor<SrcEngine, SrcLayout> const& src,
-        Tensor<DstEngine, DstLayout>      & dst)
-{
-  using SrcElemWithConst = remove_reference_t<typename SrcEngine::reference>;
-  using SrcType = typename SrcEngine::value_type;
-  using DstType = typename DstEngine::value_type;
-
-  auto copy_op = []() {
-#if defined(CUTE_ARCH_CP_ASYNC_SM80_ENABLED)
-    if constexpr (is_gmem<SrcEngine>::value && is_smem<DstEngine>::value &&
-                  sizeof(SrcType) == sizeof(DstType)) {
-      if constexpr (is_const_v<SrcElemWithConst> && sizeof(SrcType) == 16) {
-          return SM80_CP_ASYNC_CACHEGLOBAL<SrcType,DstType>{};
-      } else if constexpr (sizeof(SrcType) == 4 || sizeof(SrcType) == 8 || sizeof(SrcType) == 16) {
-          return SM80_CP_ASYNC_CACHEALWAYS<SrcType,DstType>{};
-      } else {
-          return UniversalCopy<SrcType,DstType>{};
-      }
-    } else {
-        return UniversalCopy<SrcType,DstType>{};
-    }
-
-    CUTE_GCC_UNREACHABLE;
-#else
-    return UniversalCopy<SrcType,DstType>{};
-#endif
-  }();
-
-  CUTE_UNROLL
-  for (int i = 0; i < size(dst); ++i) {
-    if (pred(i)) {
-      copy_op.copy(src(i), dst(i));
-    }
-  }
-}
-
-//
-// copy -- AutoCopyAsync
-//
-
-template <class SrcEngine, class SrcLayout,
-          class DstEngine, class DstLayout>
-CUTE_HOST_DEVICE
-void
-copy(AutoCopyAsync                const& cpy,
-     Tensor<SrcEngine, SrcLayout> const& src,       // (V,Rest...)
-     Tensor<DstEngine, DstLayout>      & dst)       // (V,Rest...)
-{
-  copy_if(cpy, TrivialPredTensor{}, src, dst);
-}
-
-//
 // copy -- CopyAtom
 //
 

@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>            // CUTE_HOST_DEVICE, CUTE_STL_NAMESPACE
 
 namespace cute
@@ -53,8 +55,8 @@ get(type_list<T...> const& t) noexcept {
 // Specialize tuple-related functionality for cute::type_list
 //
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/tuple>
+#if defined(__HIPCC_RTC__)
+#include <hip/std/tuple>
 #else
 #include <tuple>
 #endif
@@ -90,7 +92,7 @@ struct tuple_element<I, const cute::type_list<T...>>
 namespace std
 {
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 template <class... _Tp>
 struct tuple_size;
 

@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>          // CUTE_HOST_DEVICE
 #include <cute/tensor_impl.hpp>     // cute::Tensor
 #include <cute/atom/copy_atom.hpp>  // cute::Copy_Atom
@@ -107,39 +109,5 @@ prefetch(Copy_Atom<Copy_Traits<CopyOp, CT_Args...>, CA_Args...> const& atom,
     return prefetch(src);
   }
 }
-
-#if defined(CUTE_COPY_ATOM_TMA_SM90_ENABLED)
-template <class... CT_Args,
-          class SrcEngine, class SrcLayout>
-CUTE_HOST_DEVICE
-void
-prefetch(Copy_Traits<SM90_BULK_COPY_AUTO, CT_Args...> const& atom,
-         Tensor<SrcEngine, SrcLayout>                 const& src)
-{
-  using SrcType = typename SrcEngine::value_type;
-  static_assert(is_gmem<SrcEngine>::value, "Expected global tensor for L2 prefetch");
-
-  auto tiler = max_common_layout(src, src);
-  constexpr int vec_elem = decltype(size(tiler))::value;
-  constexpr int vec_bits = vec_elem * sizeof_bits_v<SrcType>;
-  static_assert(vec_bits >= 128, "Expected at least 128-bits for BLKCP");
-
-  // Construct a new concrete Atom of the vector size
-  auto bulk_atom = Copy_Atom<Copy_Traits<SM90_BULK_COPY_G2S, Int<vec_bits>>, SrcType>{};
-
-  return prefetch(bulk_atom, logical_divide(src, tiler));
-}
-
-// Backwards-compat. Throw out any extra Copy_Atom args.
-template <class... CT_Args, class... CA_Args,
-          class SrcEngine, class SrcLayout>
-CUTE_HOST_DEVICE
-void
-prefetch(Copy_Atom<Copy_Traits<SM90_BULK_COPY_AUTO, CT_Args...>, CA_Args...> const& atom,
-         Tensor<SrcEngine, SrcLayout>                                        const& src)
-{
-  return prefetch(static_cast<Copy_Traits<SM90_BULK_COPY_AUTO, CT_Args...> const&>(atom), src);
-}
-#endif // #if defined(CUTE_COPY_ATOM_TMA_SM90_ENABLED)
 
 } // end namespace cute

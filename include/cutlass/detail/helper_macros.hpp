@@ -35,6 +35,8 @@
 
 #pragma once
 
+// hip passed
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -46,10 +48,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(__NVCC__) || (defined(__clang__) && defined(__CUDA__))
+#if defined(__HIP_PLATFORM_AMD__)
 #define CUTLASS_HOST_DEVICE __forceinline__ __device__ __host__
 #define CUTLASS_DEVICE __forceinline__ __device__
-#elif defined(__CUDACC_RTC__)
+#elif defined(__HIPCC_RTC__)
 #define CUTLASS_HOST_DEVICE __forceinline__ __device__
 #define CUTLASS_DEVICE __forceinline__ __device__
 #else
@@ -83,11 +85,11 @@ CUTLASS_HOST_DEVICE void __CUTLASS_UNUSED(T const &)
 #include <ciso646>
 #endif // _MSC_VER
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #include <cassert>
 #endif
 
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
   #if defined(_MSC_VER)
     #define CUTLASS_NOT_IMPLEMENTED() { printf("%s not implemented\n", __FUNCSIG__); asm volatile ("brkpt;\n"); }
   #else
@@ -133,7 +135,7 @@ CUTLASS_HOST_DEVICE void __CUTLASS_UNUSED(T const &)
 //   return isnan(x);
 // }
 
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
 #  define CUTLASS_CMATH_NAMESPACE
 #else
 #  define CUTLASS_CMATH_NAMESPACE std
@@ -161,8 +163,8 @@ namespace cutlass {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // CUTLASS_PRAGMA_(UNROLL|NO_UNROLL) optimization directives for the CUDA compiler.
-#if defined(__CUDA_ARCH__) && !defined(__INTELLISENSE__)
-  #if defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
+#if defined(__HIP_DEVICE_COMPILE__) && !defined(__INTELLISENSE__)
+  #if defined(__HIPCC_RTC__) || (defined(__clang__) && defined(__HIP__))
     #define CUTLASS_PRAGMA_UNROLL _Pragma("unroll")
     #define CUTLASS_PRAGMA_NO_UNROLL _Pragma("unroll 1")
   #else
@@ -182,7 +184,7 @@ namespace cutlass {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 #define CUTLASS_THREAD_LOCAL thread_local
 #else
 #define CUTLASS_THREAD_LOCAL

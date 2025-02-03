@@ -34,7 +34,9 @@
 */
 #pragma once
 
-#if defined(__CUDACC_RTC__)
+// hip passed
+
+#if defined(__HIPCC_RTC__)
 #include "cutlass/floating_point_nvrtc.h"
 #else
 #include <cmath>
@@ -65,7 +67,7 @@ struct alignas(4) tfloat32_t {
   private:
     CUTLASS_HOST_DEVICE
     static uint32_t float_to_storage(float s) {
-  #if defined(__CUDA_ARCH__)
+  #if defined(__HIP_DEVICE_COMPILE__)
       uint32_t result = reinterpret_cast<uint32_t const &>(s);
   #else
       uint32_t result;
@@ -88,7 +90,7 @@ struct alignas(4) tfloat32_t {
   static tfloat32_t round_half_ulp_truncate(float const &s) {
     uint32_t x = float_to_storage(s);
 
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
     if (::isfinite(s)) {
       x += 0x1000u;
     }
@@ -115,7 +117,7 @@ struct alignas(4) tfloat32_t {
   CUTLASS_HOST_DEVICE
   explicit tfloat32_t(int x) {
     float flt = static_cast<float>(x);
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
     storage = reinterpret_cast<uint32_t const &>(flt);
     #else
     std::memcpy(&storage, &flt, sizeof(storage));
@@ -130,7 +132,7 @@ struct alignas(4) tfloat32_t {
     // of the mantissa.
     unsigned bits = (storage & ~0x1fffu);
 
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
     return reinterpret_cast<float const &>(bits);
     #else
     float flt;
@@ -251,7 +253,7 @@ int fpclassify(cutlass::tfloat32_t const& h) {
 
 CUTLASS_HOST_DEVICE
 cutlass::tfloat32_t sqrt(cutlass::tfloat32_t const& h) {
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
   return cutlass::tfloat32_t(sqrtf(float(h)));
 #else
   return cutlass::tfloat32_t(std::sqrt(float(h)));
@@ -280,7 +282,7 @@ tfloat32_t copysign(tfloat32_t const& a, tfloat32_t const& b) {
 
 namespace std {
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 /// Numeric limits
 template <>
 struct numeric_limits<cutlass::tfloat32_t> {

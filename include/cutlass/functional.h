@@ -35,14 +35,16 @@
 */
 #pragma once
 
+// hip passed
+
 #include "cutlass/cutlass.h"
 #include "cutlass/numeric_types.h"
 #include "cutlass/platform/platform.h"
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 #include "cutlass/floating_point_nvrtc.h"
 #endif
 
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 #if defined(CUTLASS_ARCH_WMMA_ENABLED)
 #include <mma.h>
@@ -52,11 +54,6 @@
 // Provides support for alternate operators such as 'and', 'or', ...
 #include <ciso646>
 #endif // _MSC_VER
-
-
-#if defined(CUTLASS_ARCH_MMA_SM100A_ENABLED)
-#  define CUTLASS_ARCH_CREDUX_ENABLED
-#endif
 
 
 namespace cutlass {
@@ -118,7 +115,7 @@ struct scale {
   }
 };
 
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+#if defined(__HIP_DEVICE_COMPILE__)
 /// Partial specializations needed when __CUDA_NO_HALF2_OPERATORS__ is set
 template<>
 struct plus<__half2> {
@@ -168,7 +165,7 @@ struct multiplies<__half> {
     return __hmul(lhs, rhs);
   }
 };
-#endif // defined(__CUDA_ARCH__)
+#endif // defined(__HIP_DEVICE_COMPILE__)
 
 
 /// Squares with optional conversion
@@ -227,7 +224,7 @@ template <>
 struct inverse_square_root<float> {
   CUTLASS_HOST_DEVICE
   float operator()(float const &lhs) const {
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     return rsqrtf(lhs);
 #else
     return 1.f / std::sqrt(lhs);
@@ -239,7 +236,7 @@ template <>
 struct inverse_square_root<half_t> {
   CUTLASS_HOST_DEVICE
   half_t operator()(half_t const &lhs) const {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 520)
+#if defined(__HIP_DEVICE_COMPILE__)
     auto result = hrsqrt(reinterpret_cast<__half const &>(lhs));
     return reinterpret_cast<half_t const &>(result);
 #else
@@ -272,11 +269,7 @@ struct reciprocal_approximate <float> {
   CUTLASS_HOST_DEVICE
   float operator()(float lhs) const {
     float ret;
-    #if defined(__CUDA_ARCH__)
-      asm volatile ("rcp.approx.f32 %0, %1;\n" : "=f"(ret) : "f"(lhs));
-    #else
-      ret = 1.0f / lhs;
-    #endif
+    ret = 1.0f / lhs;
     return ret;
   }
 };
@@ -301,17 +294,13 @@ struct reciprocal_approximate_ftz <float> {
   CUTLASS_HOST_DEVICE
   float operator()(float lhs) const {
     float ret;
-    #if defined(__CUDA_ARCH__)
-      asm volatile ("rcp.approx.ftz.f32 %0, %1;\n" : "=f"(ret) : "f"(lhs));
-    #else
-      if (std::fpclassify(lhs) == FP_SUBNORMAL) {
+    if (std::fpclassify(lhs) == FP_SUBNORMAL) {
         lhs = 0.0f;
-      }
-      ret = 1.0f / lhs;
-      if (std::fpclassify(ret) == FP_SUBNORMAL) {
+    }
+    ret = 1.0f / lhs;
+    if (std::fpclassify(ret) == FP_SUBNORMAL) {
         ret = 0.0f;
-      }
-    #endif
+    }
     return ret;
   }
 };
@@ -402,15 +391,9 @@ template <>
 struct maximum<float, true> {
   CUTLASS_HOST_DEVICE
   float operator()(float lhs, float rhs) const {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-    float res;
-    asm volatile("max.NaN.f32 %0, %1, %2;\n" : "=f"(res) : "f"(lhs), "f"(rhs));
-    return res;
-#else
     using CUTLASS_CMATH_NAMESPACE :: isnan;
 
     return lhs > rhs || isnan(lhs) ? lhs : rhs;
-#endif
   }
 };
 
@@ -455,14 +438,8 @@ template <>
 struct minimum<float, true> {
   CUTLASS_HOST_DEVICE
   float operator()(float lhs, float rhs) const {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-    float res;
-    asm volatile("min.NaN.f32 %0, %1, %2;\n" : "=f"(res) : "f"(lhs), "f"(rhs));
-    return res;
-#else
     // No need for ADL; call std::isnan(float) on host and ::isnan(float) on device.
     return lhs < rhs || (CUTLASS_CMATH_NAMESPACE :: isnan(lhs)) ? lhs : rhs;
-#endif
   }
 };
 
@@ -549,13 +526,6 @@ template <>
 struct guarded_multiply_add<half_t, half_t, half_t> {
   CUTLASS_HOST_DEVICE
   half_t operator()(half_t const &a, half_t const &b, half_t const &c) const {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
-    half_t result;
-    asm ("fma.rn.oob.f16 %0, %1, %2, %3;\n"
-      : "=h"(*reinterpret_cast<uint16_t*>(&result))
-      : "h"(*reinterpret_cast<uint16_t const*>(&a)), "h"(*reinterpret_cast<uint16_t const*>(&b)), "h"(*reinterpret_cast<uint16_t const*>(&c)));
-    return result;
-#else
     // Namespace-qualifying isnan as cutlass::isnan saves the compiler
     // the trouble of argument-dependent lookup.  Calling std::isnan or
     // ::isnan here would result in unwanted implicit conversion to float.
@@ -563,7 +533,6 @@ struct guarded_multiply_add<half_t, half_t, half_t> {
       return half_t(0);
     }
     return a * b + c;
-#endif
   }
 };
 
@@ -586,19 +555,11 @@ template <>
 struct guarded_multiply_add_relu0<half_t, half_t, half_t> {
   CUTLASS_HOST_DEVICE
   half_t operator()(half_t const &a, half_t const &b, half_t const &c) const {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 900
-    half_t result;
-    asm ("fma.rn.oob.relu.f16 %0, %1, %2, %3;\n"
-      : "=h"(*reinterpret_cast<uint16_t*>(&result))
-      : "h"(*reinterpret_cast<uint16_t const*>(&a)), "h"(*reinterpret_cast<uint16_t const*>(&b)), "h"(*reinterpret_cast<uint16_t const*>(&c)));
-    return result;
-#else
     if (cutlass::isnan(a) || cutlass::isnan(b)) {
       return half_t(0);
     }
     maximum<half_t> mx;
     return mx(a * b + c, half_t(0));
-#endif
   }
 };
 
@@ -610,7 +571,7 @@ struct and_popc_add {
   C operator()(A const &a, B const &b, C const &c) const {
     A and_result = a & b;
 
-#if defined(__CUDA__ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     int popc_result = __popc(and_result);
 
     if constexpr (sizeof(A) == sizeof(uint64_t)) {
@@ -647,7 +608,7 @@ struct xor_popc_add {
   C operator()(A const &a, B const &b, C const &c) const {
     A xor_result = a ^ b;
 
-#if defined(__CUDA__ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     int popc_result = __popc(xor_result);
 
     if constexpr (sizeof(A) == sizeof(uint64_t)) {
@@ -683,7 +644,7 @@ struct or_popc_add {
   C operator()(A const &a, B const &b, C const &c) const {
     A or_result = a | b;
 
-#if defined(__CUDA__ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     int popc_result = __popc(or_result);
 
     if constexpr (sizeof(A) == sizeof(uint64_t)) {
@@ -889,7 +850,7 @@ struct atomic_add
   CUTLASS_DEVICE
   void operator()(T *ptr, const T &data)
   {
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     atomicAdd(ptr, data);
 #else
     CUTLASS_UNUSED(ptr);
@@ -905,23 +866,12 @@ struct atomic_add<double>
   CUTLASS_DEVICE
   void operator()(double *ptr, const double &data)
   {
-#if !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__)
     CUTLASS_UNUSED(ptr);
     CUTLASS_UNUSED(data);
     CUTLASS_NOT_IMPLEMENTED();
-#elif (__CUDA_ARCH__ >= 600)
-    atomicAdd(ptr, data);
 #else
-    // Use CAS loop
-    unsigned long long int* ptr_int = reinterpret_cast<unsigned long long int*>(ptr);
-    unsigned long long int old_int = *ptr_int;
-    unsigned long long int assumed_int;
-
-    do {
-      double update = data + __longlong_as_double(old_int);
-      assumed_int = old_int;
-      old_int = atomicCAS(ptr_int, assumed_int, __double_as_longlong(update));
-    } while (assumed_int != old_int);
+    atomicAdd(ptr, data);
 #endif // (__CUDA_ARCH__ >= 600)
   }
 };
@@ -932,15 +882,9 @@ struct atomic_add<half2>
   CUTLASS_DEVICE
   void operator()(half2 *ptr, const half2 &data)
   {
-#if !defined(__CUDA_ARCH__) || (defined(__CUDA_ARCH__)  && (__CUDA_ARCH__ < 600))
       CUTLASS_UNUSED(ptr);
       CUTLASS_UNUSED(data);
       CUTLASS_NOT_IMPLEMENTED();
-#else
-    // Vector-2 atomic reduction requires .target sm_60 or higher
-    uint32_t word = reinterpret_cast<const uint32_t&>(data);
-    asm volatile ("red.gpu.global.add.noftz.f16x2 [%0], %1;\n" : : "l"(ptr), "r"(word));
-#endif // (__CUDA_ARCH__ >= 600)
   }
 };
 
@@ -951,7 +895,7 @@ template <typename T>
 struct atomic_maximum {
   CUTLASS_DEVICE
   T operator()(T *ptr, T value) const {
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     return atomicMax(ptr, value);
 #else
     CUTLASS_UNUSED(ptr);
@@ -966,7 +910,7 @@ template <>
 struct atomic_maximum<float> {
   CUTLASS_DEVICE
   float operator()(float *ptr, float value) const {
-#if defined(__CUDA_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     // In device code, make sure that we do NOT try to use
     // std::signbit, as that won't work if building with NVRTC.
     // Instead, prefix "::" to call signbit from the global namespace,
@@ -992,114 +936,6 @@ template <class T>
 struct is_atomic<atomic_add<T>> : platform::true_type {};
 template <class T>
 struct is_atomic<atomic_maximum<T>> : platform::true_type {};
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-/// Parallel Synchronization and Communication Instructions
-template <typename T>
-struct redux_abs_max_nan_propagation_sync_warp;
-
-template <>
-struct redux_abs_max_nan_propagation_sync_warp <float>{
-  CUTLASS_DEVICE
-  float operator()(float const &lhs) const {
-#if defined(CUTLASS_ARCH_CREDUX_ENABLED)
-    float result;
-    asm volatile("redux.sync.max.abs.NaN.f32 %0, %1, 0xffffffff;\n" : "=f"(result) : "f"(lhs));
-    return result;
-#elif defined(__CUDA_ARCH__)
-    cutlass::maximum<float, /*PropagateNaN*/true> max_op;
-    int shuffle_width = 32;
-    float abs_max = cutlass::absolute_value_op<float>{}(lhs);
-    CUTLASS_PRAGMA_UNROLL
-    for(int offset = shuffle_width / 2; offset > 0; offset /= 2) {
-      float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
-      abs_max = max_op(abs_max,value);
-    }
-    // Broadcast the maximum to all threads participating in the reduction.
-    abs_max = __shfl_sync(0xffffffff, abs_max, 0, shuffle_width);
-    return abs_max;
-#else
-    CUTLASS_UNUSED(lhs);
-    CUTLASS_NOT_IMPLEMENTED();
-    return 0;
-#endif
-  }
-};
-
-template <typename T>
-struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31;
-
-template <>
-struct redux_abs_max_nan_propagation_sync_warp_t0t15_t16t31<float>{
-  CUTLASS_DEVICE
-  float operator()(float const &max) const {
-#if defined(CUTLASS_ARCH_CREDUX_ENABLED)
-    int half_warp_idx = threadIdx.x / (NumThreadsPerWarp / 2);
-    bool first_half_threads = (half_warp_idx % 2) == 0;
-    float value0 =  first_half_threads ? max : 0;
-    float v0 = cutlass::redux_abs_max_nan_propagation_sync_warp<float>{}(value0);
-
-    float value1 = !first_half_threads ? max : 0;
-    float v1 = cutlass::redux_abs_max_nan_propagation_sync_warp<float>{}(value1);
-    return first_half_threads ? v0: v1;
-    
-#elif defined(__CUDA_ARCH__)
-    float abs_max = cutlass::absolute_value_op<float>{}(max);
-    cutlass::maximum<float, /*PropagateNaN*/true> max_op;
-    constexpr int shuffle_width = 16;
-    CUTLASS_PRAGMA_UNROLL
-    for(int offset = shuffle_width/2; offset > 0; offset /= 2) {
-      float value = __shfl_down_sync(0xffffffff, abs_max, offset, shuffle_width);
-        abs_max  = max_op(abs_max,value);
-    }
-    // Broadcast the maximum to all threads participating in the reduction.
-    abs_max = __shfl_sync(0xffffffff, abs_max, 0, shuffle_width);
-    return abs_max;
-#else 
-    CUTLASS_UNUSED(max);
-    CUTLASS_NOT_IMPLEMENTED();
-    return 0;
-#endif
-  }
-};
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Partial specializations for nvcuda::wmma::fragment<Use, m, n, k, T, Layout>
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-#if defined(CUTLASS_ARCH_WMMA_ENABLED)
-
-template<typename Use, int m, int n, int k, typename T, typename Layout>
-struct plus<nvcuda::wmma::fragment<Use, m, n, k, T, Layout>>
-{
-  using Fragment = nvcuda::wmma::fragment<Use, m, n, k, T, Layout>;
-  using ElementType = typename Fragment::element_type;
-
-  CUTLASS_HOST_DEVICE
-  Fragment operator()(Fragment const &lhs, Fragment const &rhs) const
-  {
-    Fragment result;
-    plus<ElementType> scalar_op;
-
-    ElementType *result_elts = reinterpret_cast<ElementType*>(&result);
-    const ElementType *lhs_elts = reinterpret_cast<const ElementType*>(&lhs);
-    const ElementType *rhs_elts = reinterpret_cast<const ElementType*>(&rhs);
-
-    CUTLASS_PRAGMA_UNROLL
-    for (int i = 0; i < Fragment::num_elements; i++) {
-      result_elts[i] = scalar_op(lhs_elts[i], rhs_elts[i]);
-    }
-
-    return result;
-  }
-};
-
-#endif // defined(CUTLASS_ARCH_WMMA_ENABLED)
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

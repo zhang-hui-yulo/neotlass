@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 
 #include <cute/arch/util.hpp>
@@ -85,23 +87,5 @@ using AutoVectorizingCopy = AutoVectorizingCopyWithAssumedAlignment<128>;
 //
 
 using DefaultCopy = AutoVectorizingCopyWithAssumedAlignment<8>;
-
-//
-// Copy policy automatically selecting between
-// UniversalCopy and cp.async , based on type and memory space.
-//
-struct AutoCopyAsync {};
-
-//
-// Global memory prefetch into L2
-//
-
-CUTE_HOST_DEVICE static void
-prefetch(void const* gmem_ptr)
-{
-#if defined(__CUDA_ARCH__)
-  asm volatile("prefetch.global.L2 [%0];\n" : : "l"(gmem_ptr) : "memory");
-#endif
-}
 
 } // end namespace cute

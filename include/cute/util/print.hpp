@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>           // CUTE_HOST_DEVICE
 #include <cute/util/type_traits.hpp> // cute::is_valid
 #include <cute/numeric/numeric_types.hpp> 

@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 #include <cute/util/type_traits.hpp>
 #include <cute/numeric/integral_constant.hpp>  // cute::true_type, cute::false_type
@@ -646,7 +648,7 @@ CUTE_HOST_DEVICE void print_tuple(Tuple const& t, index_sequence<Is...>, char s 
   print(e);
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class Tuple, std::size_t... Is>
 CUTE_HOST std::ostream& print_tuple_os(std::ostream& os, Tuple const& t, index_sequence<Is...>, char s = '(', char e = ')')
 {
@@ -657,7 +659,7 @@ CUTE_HOST std::ostream& print_tuple_os(std::ostream& os, Tuple const& t, index_s
   }
   return os << e;
 }
-#endif // !defined(__CUDACC_RTC__)
+#endif // !defined(__HIPCC_RTC__)
 
 } // end namespace detail
 
@@ -668,14 +670,14 @@ CUTE_HOST_DEVICE void print(Tuple const& t)
   return detail::print_tuple(t, make_index_sequence<tuple_size<Tuple>::value>{});
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class Tuple,
           __CUTE_REQUIRES(is_tuple<Tuple>::value)>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, Tuple const& t)
 {
   return detail::print_tuple_os(os, t, make_index_sequence<tuple_size<Tuple>::value>{});
 }
-#endif // !defined(__CUDACC_RTC__)
+#endif // !defined(__HIPCC_RTC__)
 
 } // end namespace cute
 
@@ -714,7 +716,7 @@ struct tuple_element<I, const cute::tuple<T...>>
 namespace std
 {
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 template <class... _Tp>
 struct tuple_size;
 

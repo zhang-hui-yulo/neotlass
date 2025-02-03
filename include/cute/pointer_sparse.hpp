@@ -31,6 +31,8 @@
 
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                     // CUTE_HOST_DEVICE
 #include <cute/pointer_base.hpp>               // cute::iter_adaptor
 #include <cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
@@ -161,7 +163,7 @@ CUTE_HOST_DEVICE void print(sparse_ptr<S,Iter> ptr)
   printf("sparse<%d>_", S); print(ptr.get());
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <int S, class Iter>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, sparse_ptr<S,Iter> ptr)
 {

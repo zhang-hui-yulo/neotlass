@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 
 #include <cute/numeric/numeric_types.hpp>
@@ -48,7 +50,7 @@ is_byte_aligned(void const* const ptr)
   return (reinterpret_cast<uintptr_t>(ptr) & (N-1)) == 0;
 }
 
-#if defined(__CUDACC__)
+#if defined(__HIP__)
 #  define CUTE_ALIGNAS(n) __align__(n)
 #else
 #  define CUTE_ALIGNAS(n) alignas(n)

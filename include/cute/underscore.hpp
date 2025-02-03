@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                     // CUTE_INLINE_CONSTANT, CUTE_HOST_DEVICE
 #include <cute/container/tuple.hpp>            // cute::is_tuple
 #include <cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
@@ -185,7 +187,7 @@ CUTE_HOST_DEVICE void print(Underscore const&) {
   printf("_");
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 CUTE_HOST std::ostream& operator<<(std::ostream& os, Underscore const&) {
   return os << "_";
 }

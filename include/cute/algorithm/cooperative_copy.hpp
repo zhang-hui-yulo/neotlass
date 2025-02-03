@@ -30,6 +30,8 @@
 **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 #include <cute/layout.hpp>
 #include <cute/layout_composed.hpp> // cute::logical_divide

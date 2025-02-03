@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/container/alignment.hpp>  // CUTE_ALIGNAS
 #include <cute/container/array.hpp>      // cute::array
 

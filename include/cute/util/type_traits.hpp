@@ -30,7 +30,7 @@
  **************************************************************************************************/
 #pragma once
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 #include <cuda/std/type_traits>
 #include <cuda/std/utility>
 #include <cuda/std/cstddef>

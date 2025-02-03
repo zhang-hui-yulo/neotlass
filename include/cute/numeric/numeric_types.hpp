@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>          // CUTE_HOST_DEVICE
 #include <cute/numeric/int.hpp>     // cute::int2_t, cute::int4_t, etc
 

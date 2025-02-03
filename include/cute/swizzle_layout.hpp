@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>           // CUTE_HOST_DEVICE
 #include <cute/layout.hpp>           // cute::Layout
 #include <cute/layout_composed.hpp>  // cute::ComposedLayout

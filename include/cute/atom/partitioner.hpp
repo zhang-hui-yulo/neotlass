@@ -31,8 +31,10 @@
 
 #pragma once
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/type_traits>
+// hip passed
+
+#if defined(__HIPCC_RTC__)
+#include <hip/std/type_traits>
 #else
 #include <type_traits>
 #endif

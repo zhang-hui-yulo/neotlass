@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                   // CUTE_HOST_DEVICE
 #include <cute/pointer_base.hpp>             // cute::iter_adaptor
 #include <cute/swizzle.hpp>                  // cute::Swizzle, cute::get_swizzle primary template
@@ -165,7 +167,7 @@ CUTE_HOST_DEVICE void print(swizzle_ptr<SwizzleFn,P> ptr)
   print(SwizzleFn{}); printf("_"); print(ptr.get());
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class SwizzleFn, class P>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, swizzle_ptr<SwizzleFn,P> ptr)
 {

@@ -36,31 +36,16 @@
 
 #pragma once
 
+// hip passed
 
 #include "cutlass/arch/config.h"
 
 
-// FP8 types are available starting CUDA 11.8+
-#if (__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 8))
 #define CUDA_FP8_ENABLED 1
-#endif
 
-#if defined(__CUDA_ARCH__)
-#  if (__CUDA_ARCH__ >= 900)
-#    if (__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 8))
-#      define CUDA_PTX_FP8_CVT_ENABLED 1
-#    endif // (__CUDACC_VER_MAJOR__ >= 12) || ((__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 8))
-#  elif (__CUDA_ARCH__ == 890)
-#    if (__CUDACC_VER_MAJOR__ > 12) || ((__CUDACC_VER_MAJOR__ == 12) && (__CUDACC_VER_MINOR__ >= 1))
-#      define CUDA_PTX_FP8_CVT_ENABLED 1
-#    endif // (__CUDACC_VER_MAJOR__ > 12) || ((__CUDACC_VER_MAJOR__ == 12) && (__CUDACC_VER_MINOR__ >= 1))
-#  endif // (__CUDA_ARCH__ >= 900)
-#endif // defined(__CUDA_ARCH__)
-
-
-#if (defined(CUTLASS_ARCH_MMA_SM100A_ENABLED))
-#  define CUDA_PTX_UE8M0_CVT_ENABLED 1
-#endif
+#if (defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)) && __HIP_DEVICE_COMPILE__
+#  define CUDA_PTX_FP8_CVT_ENABLED 1
+#endif // defined(__HIP_DEVICE_COMPILE__)
 
 
 #ifdef __GNUC__
@@ -70,7 +55,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 
 #include "cutlass/floating_point_nvrtc.h"
 
@@ -85,9 +70,9 @@
 #endif
 
 #ifdef CUDA_FP8_ENABLED
-#include <cuda_fp8.h>
+#include <hip/hip_fp8.h>
 #endif
-#include <cuda_fp16.h>
+#include <hip/hip_fp16.h>
 
 #include "cutlass/cutlass.h"
 
@@ -172,7 +157,7 @@ struct alignas(1) float8_base {
     static bool isfinite(float flt) {
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -186,7 +171,7 @@ struct alignas(1) float8_base {
     static bool isnan(float flt) {
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -200,7 +185,7 @@ struct alignas(1) float8_base {
     static bool isinf(float flt) {
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -219,7 +204,7 @@ struct alignas(1) float8_base {
         // software implementation rounds toward nearest even
         uint32_t s;
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         s = reinterpret_cast<uint32_t const &>(flt);
         #else
         std::memcpy(&s, &flt, sizeof(s));
@@ -366,7 +351,7 @@ struct alignas(1) float8_base {
             }
         }
 
-        #if defined(__CUDA_ARCH__)
+        #if defined(__HIP_DEVICE_COMPILE__)
         return reinterpret_cast<float const&>(f);
         #else
         float flt;
@@ -474,7 +459,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
 #ifdef CUDA_FP8_ENABLED
     /// Conversion from CUDA's FP8 type
     CUTLASS_HOST_DEVICE
-    explicit float_e4m3_t(__nv_fp8_e4m3 x) {
+    explicit float_e4m3_t(__hip_fp8_e4m3_fnuz x) {
         storage = x.__x;
     }
 #endif
@@ -511,7 +496,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
 #ifdef CUDA_FP8_ENABLED
     /// Assignment from CUDA's FP8 type
     CUTLASS_HOST_DEVICE
-    float_e4m3_t & operator=(__nv_fp8_e4m3 x) {
+    float_e4m3_t & operator=(__hip_fp8_e4m3_fnuz x) {
         storage = x.__x;
         return *this;
     }
@@ -538,7 +523,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     /// Converts to int
     CUTLASS_HOST_DEVICE
     explicit operator int() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return __half2int_rn(to_half(*this));
     #else
         return int(to_float(*this));
@@ -548,7 +533,7 @@ struct alignas(1) float_e4m3_t : float8_base<FloatEncoding::E4M3> {
     /// Casts to bool
     CUTLASS_HOST_DEVICE
     explicit operator bool() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return bool(__half2int_rn(to_half(*this)));
     #else
         return bool(int(to_float(*this)));
@@ -689,7 +674,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 #ifdef CUDA_FP8_ENABLED
     /// Conversion from CUDA's FP8 type
     CUTLASS_HOST_DEVICE
-    explicit float_e5m2_t(__nv_fp8_e5m2 x) {
+    explicit float_e5m2_t(__hip_fp8_e5m2_fnuz x) {
         storage = x.__x;
     }
 #endif
@@ -726,7 +711,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
 #ifdef CUDA_FP8_ENABLED
     /// Assignment from CUDA's FP8 type
     CUTLASS_HOST_DEVICE
-    float_e5m2_t & operator=(__nv_fp8_e5m2 x) {
+    float_e5m2_t & operator=(__hip_fp8_e5m2_fnuz x) {
         storage = x.__x;
         return *this;
     }
@@ -753,7 +738,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     /// Converts to int
     CUTLASS_HOST_DEVICE
     explicit operator int() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return __half2int_rn(to_half(*this));
     #else
         return int(to_float(*this));
@@ -763,7 +748,7 @@ struct alignas(1) float_e5m2_t : float8_base<FloatEncoding::E5M2> {
     /// Casts to bool
     CUTLASS_HOST_DEVICE
     explicit operator bool() const {
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
         return bool(__half2int_rn(to_half(*this)));
     #else
         return bool(int(to_float(*this)));
@@ -1318,7 +1303,7 @@ using type_erased_dynamic_mx_float8_t = mx_float8_t<type_erased_dynamic_float8_t
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 namespace std {
 
 /// Numeric limits common to all float8 types
@@ -1481,11 +1466,11 @@ public:
   static bool const is_exact = false;
   static bool const has_quiet_NaN = true;
   static bool const has_signaling_NaN = false;
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
   static std::float_denorm_style const has_denorm = std::denorm_present;
 #endif
   static bool const has_denorm_loss = true;
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
   static std::float_round_style const round_style = std::round_to_nearest;
 #endif
   static bool const is_iec559 = false;

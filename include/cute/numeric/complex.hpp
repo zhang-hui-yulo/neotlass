@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>    // CUTE_HOST_DEVICE
 
 #include <cutlass/complex.h>  // cutlass::complexm, cutlass::real, cutlass::imag, cutlass::is_complex

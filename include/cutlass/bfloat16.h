@@ -36,7 +36,9 @@
 
 #pragma once
 
-#if defined(__CUDACC_RTC__)
+// hip passed
+
+#if defined(__HIPCC_RTC__)
 #include "cutlass/floating_point_nvrtc.h"
 #else
 #include <cmath>
@@ -45,7 +47,7 @@
 #include <cstring>
 #endif
 
-#include <cuda_bf16.h>
+#include <hip/hip_bf16.h>
 #include "cutlass/cutlass.h"
 #include "cutlass/platform/platform.h"
 
@@ -87,7 +89,7 @@ private:
     float flt = static_cast<float>(x);
     uint32_t bits;
 
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
     bits = reinterpret_cast<uint32_t &>(flt);
     #else
     std::memcpy(&bits, &flt, sizeof(bits));
@@ -102,11 +104,11 @@ public:
 
   /// Reinterpret cast from CUDA's __nv_bfloat16 type
   CUTLASS_HOST_DEVICE
-  explicit bfloat16_t(__nv_bfloat16 const & x) {
-    #if defined(__CUDA_ARCH__)
+  explicit bfloat16_t(__hip_bfloat16 const & x) {
+    #if defined(__HIP_DEVICE_COMPILE__)
     storage = reinterpret_cast<uint16_t const &>(x);
     #else
-    __nv_bfloat16_raw raw(x);
+    __hip_bfloat16_raw raw(x);
     std::memcpy(&storage, &raw.x, sizeof(storage));
     #endif
   }
@@ -115,14 +117,15 @@ public:
   CUTLASS_HOST_DEVICE
   explicit bfloat16_t(float x) {
 
-    #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800) && (__CUDACC_VER_MAJOR__ >= 11)
+    #if defined(__HIP_DEVICE_COMPILE__)
 
-    asm("cvt.rn.bf16.f32 %0, %1;\n" : "=h"(storage) : "f"(x));
+    auto value = __float2bfloat16(x);
+    storage = *reinterpret_cast<uint16_t*>(&value);
 
     #else
     uint32_t bits;
 
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
     bits = reinterpret_cast<uint32_t &>(x);
     #else
     std::memcpy(&bits, &x, sizeof(bits));
@@ -163,7 +166,7 @@ public:
   CUTLASS_HOST_DEVICE
   operator float() const {
     unsigned bits = (unsigned(storage) << 16);
-    #if defined(__CUDA_ARCH__)
+    #if defined(__HIP_DEVICE_COMPILE__)
     return reinterpret_cast<float const &>(bits);
     #else
     float flt;
@@ -192,8 +195,8 @@ public:
 
   /// Bitcasts to CUDA's bf16 type
   CUTLASS_DEVICE
-  __nv_bfloat16 to_nv_bfloat16() const {
-    return reinterpret_cast<__nv_bfloat16 const &>(storage);
+  __hip_bfloat16 to_hip_bfloat16() const {
+    return reinterpret_cast<__hip_bfloat16 const &>(storage);
   }
 
   /// Obtains raw bits
@@ -289,7 +292,7 @@ int fpclassify(cutlass::bfloat16_t const& h) {
 
 CUTLASS_HOST_DEVICE
 cutlass::bfloat16_t sqrt(cutlass::bfloat16_t const& h) {
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
   return cutlass::bfloat16_t(sqrtf(float(h)));
 #else
   return cutlass::bfloat16_t(std::sqrt(float(h)));
@@ -302,7 +305,7 @@ bfloat16_t copysign(bfloat16_t const& a, bfloat16_t const& b) {
   uint16_t a_bits;
   uint16_t b_bits;
 
-  #if defined(__CUDA_ARCH__)
+  #if defined(__HIP_DEVICE_COMPILE__)
   a_bits = reinterpret_cast<uint16_t const &>(a);
   b_bits = reinterpret_cast<uint16_t const &>(b);
   #else
@@ -327,7 +330,7 @@ bfloat16_t copysign(bfloat16_t const& a, bfloat16_t const& b) {
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 namespace std {
 
 /// Numeric limits
@@ -405,11 +408,11 @@ struct numeric_limits<cutlass::bfloat16_t> {
   static bool const has_infinity = true;
   static bool const has_quiet_NaN = true;
   static bool const has_signaling_NaN = false;
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
   static std::float_denorm_style const has_denorm = std::denorm_present;
 #endif
   static bool const has_denorm_loss = true;
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
   static std::float_round_style const round_style = std::round_to_nearest;
 #endif
   static bool const is_iec559 = false;
@@ -469,8 +472,8 @@ namespace cutlass {
 
 CUTLASS_HOST_DEVICE
 bool operator==(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return __heq(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
+#if defined(__HIP_DEVICE_COMPILE__)
+  return __heq(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16());
 #else
   return float(lhs) == float(rhs);
 #endif
@@ -478,8 +481,8 @@ bool operator==(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bool operator!=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return __hne(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
+#if defined(__HIP_DEVICE_COMPILE__)
+  return __hne(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16());
 #else
   return float(lhs) != float(rhs);
 #endif
@@ -487,8 +490,8 @@ bool operator!=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bool operator<(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return __hlt(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
+#if defined(__HIP_DEVICE_COMPILE__)
+  return __hlt(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16());
 #else
   return float(lhs) < float(rhs);
 #endif
@@ -496,8 +499,8 @@ bool operator<(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bool operator<=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return __hle(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
+#if defined(__HIP_DEVICE_COMPILE__)
+  return __hle(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16());
 #else
   return float(lhs) <= float(rhs);
 #endif
@@ -505,8 +508,8 @@ bool operator<=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bool operator>(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return __hgt(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
+#if defined(__HIP_DEVICE_COMPILE__)
+  return __hgt(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16());
 #else
   return float(lhs) > float(rhs);
 #endif
@@ -514,8 +517,8 @@ bool operator>(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bool operator>=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return __hge(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16());
+#if defined(__HIP_DEVICE_COMPILE__)
+  return __hge(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16());
 #else
   return float(lhs) >= float(rhs);
 #endif
@@ -523,8 +526,8 @@ bool operator>=(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t operator+(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return bfloat16_t(__hadd(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  return bfloat16_t(__hadd(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   return bfloat16_t(float(lhs) + float(rhs));
 #endif
@@ -532,8 +535,8 @@ bfloat16_t operator+(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t operator-(bfloat16_t const& lhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return bfloat16_t(__hneg(lhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  return bfloat16_t(__hneg(lhs.to_hip_bfloat16()));
 #else
   return bfloat16_t(-float(lhs));
 #endif
@@ -541,8 +544,8 @@ bfloat16_t operator-(bfloat16_t const& lhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t operator-(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return bfloat16_t(__hsub(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  return bfloat16_t(__hsub(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   return bfloat16_t(float(lhs) - float(rhs));
 #endif
@@ -550,8 +553,8 @@ bfloat16_t operator-(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t operator*(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return bfloat16_t(__hmul(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  return bfloat16_t(__hmul(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   return bfloat16_t(float(lhs) * float(rhs));
 #endif
@@ -559,8 +562,8 @@ bfloat16_t operator*(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t operator/(bfloat16_t const& lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  return bfloat16_t(__hdiv(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  return bfloat16_t(__hdiv(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   return bfloat16_t(float(lhs) / float(rhs));
 #endif
@@ -568,8 +571,8 @@ bfloat16_t operator/(bfloat16_t const& lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t& operator+=(bfloat16_t & lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hadd(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hadd(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   lhs = bfloat16_t(float(lhs) + float(rhs));
 #endif
@@ -578,8 +581,8 @@ bfloat16_t& operator+=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t& operator-=(bfloat16_t & lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hsub(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hsub(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   lhs = bfloat16_t(float(lhs) - float(rhs));
 #endif
@@ -588,8 +591,8 @@ bfloat16_t& operator-=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t& operator*=(bfloat16_t & lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hmul(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hmul(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   lhs = bfloat16_t(float(lhs) * float(rhs));
 #endif
@@ -598,8 +601,8 @@ bfloat16_t& operator*=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t& operator/=(bfloat16_t & lhs, bfloat16_t const& rhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hdiv(lhs.to_nv_bfloat16(), rhs.to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hdiv(lhs.to_hip_bfloat16(), rhs.to_hip_bfloat16()));
 #else
   lhs = bfloat16_t(float(lhs) / float(rhs));
 #endif
@@ -608,8 +611,8 @@ bfloat16_t& operator/=(bfloat16_t & lhs, bfloat16_t const& rhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t& operator++(bfloat16_t & lhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hadd(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hadd(lhs.to_hip_bfloat16(), bfloat16_t(1.0f).to_hip_bfloat16()));
 #else
   float tmp(lhs);
   ++tmp;
@@ -620,8 +623,8 @@ bfloat16_t& operator++(bfloat16_t & lhs) {
 
 CUTLASS_HOST_DEVICE
 bfloat16_t& operator--(bfloat16_t & lhs) {
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hsub(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hsub(lhs.to_hip_bfloat16(), bfloat16_t(1.0f).to_hip_bfloat16()));
 #else
   float tmp(lhs);
   --tmp;
@@ -633,8 +636,8 @@ bfloat16_t& operator--(bfloat16_t & lhs) {
 CUTLASS_HOST_DEVICE
 bfloat16_t operator++(bfloat16_t & lhs, int) {
   bfloat16_t ret(lhs);
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hadd(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hadd(lhs.to_hip_bfloat16(), bfloat16_t(1.0f).to_hip_bfloat16()));
 #else
   float tmp(lhs);
   tmp++;
@@ -646,8 +649,8 @@ bfloat16_t operator++(bfloat16_t & lhs, int) {
 CUTLASS_HOST_DEVICE
 bfloat16_t operator--(bfloat16_t & lhs, int) {
   bfloat16_t ret(lhs);
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800)
-  lhs = bfloat16_t(__hsub(lhs.to_nv_bfloat16(), bfloat16_t(1.0f).to_nv_bfloat16()));
+#if defined(__HIP_DEVICE_COMPILE__)
+  lhs = bfloat16_t(__hsub(lhs.to_hip_bfloat16(), bfloat16_t(1.0f).to_hip_bfloat16()));
 #else
   float tmp(lhs);
   tmp--;

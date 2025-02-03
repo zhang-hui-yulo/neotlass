@@ -99,12 +99,14 @@
 // Dependencies
 //-----------------------------------------------------------------------------
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/type_traits>
-#include <cuda/std/utility>
-#include <cuda/std/cstddef>
-#include <cuda/std/cstdint>
-#include <cuda/std/limits>
+// hip passed
+
+#if defined(__HIPCC_RTC__)
+#include <hip/std/type_traits>
+#include <hip/std/utility>
+#include <hip/std/cstddef>
+#include <hip/std/cstdint>
+#include <hip/std/limits>
 #else
 #include <type_traits>
 #include <utility>
@@ -113,7 +115,7 @@
 #include <limits>
 #endif
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 //-----------------------------------------------------------------------------
 // Include STL files that platform provides functionality for
 //-----------------------------------------------------------------------------
@@ -127,7 +129,7 @@
 #include <type_traits>  // For integral constants, conditional metaprogramming, and type traits
 #endif
 
-#include <vector_types.h>
+#include <hip/hip_vector_types.h>
 #include <cutlass/cutlass.h>
 
 #endif
@@ -139,16 +141,12 @@
 #define CUTLASS_OS_WINDOWS
 #endif
 
-#if defined(__clang__) && defined(__CUDA__)
-#define CUTLASS_CLANG_CUDA 1
-#endif
-
 /******************************************************************************
  * Macros
  ******************************************************************************/
 /// std
 #if !defined(CUTLASS_STL_NAMESPACE)
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 #define CUTLASS_STL_NAMESPACE cuda::std
 #else
 #define CUTLASS_STL_NAMESPACE std
@@ -218,7 +216,7 @@ namespace platform {
 // Abs operations <algorithm>
 //-----------------------------------------------------------------------------
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 /// std::abs
 CUTLASS_HOST_DEVICE constexpr int abs(int a) {
     return (a < 0) ? -a : a;
@@ -246,7 +244,7 @@ CUTLASS_HOST_DEVICE constexpr const T& max(const T& a, const T& b) {
   return (a < b) ? b : a;
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 //-----------------------------------------------------------------------------
 // Methods on std::pair
 //-----------------------------------------------------------------------------
@@ -305,7 +303,7 @@ namespace platform {
 // Integral constant helper types <type_traits>
 //-----------------------------------------------------------------------------
 
-#if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
+#if defined(__HIPCC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
 
 #else
 
@@ -318,7 +316,7 @@ using CUTLASS_STL_NAMESPACE::bool_constant;
 using CUTLASS_STL_NAMESPACE::true_type;
 using CUTLASS_STL_NAMESPACE::false_type;
 
-#if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1700))
+#if defined(__HIPCC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1700))
 
 /// std::nullptr_t
 struct nullptr_t {};
@@ -378,7 +376,7 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 using CUTLASS_STL_NAMESPACE::is_same;
 using CUTLASS_STL_NAMESPACE::is_same_v;
 
-#if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
+#if defined(__HIPCC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
 
 /// Helper for std::is_base_of
 template <typename BaseT, typename DerivedT>
@@ -424,7 +422,7 @@ using CUTLASS_STL_NAMESPACE::is_arithmetic_v;
 using CUTLASS_STL_NAMESPACE::is_void;
 using CUTLASS_STL_NAMESPACE::is_void_v;
 
-#if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
+#if defined(__HIPCC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
 
 /// std::is_volatile
 template <typename T>
@@ -500,7 +498,7 @@ using std::is_fundamental;
 
 #endif
 
-#if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1800)) || \
+#if defined(__HIPCC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1800)) || \
     (defined(__GNUG__) && (__GNUC__ < 5))
 
 /**
@@ -562,7 +560,7 @@ using CUTLASS_STL_NAMESPACE::is_convertible_v;
 // Alignment and layout utilities
 //-----------------------------------------------------------------------------
 
-#if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
+#if defined(__HIPCC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1500))
 
 /// std::alignment_of
 template <typename value_t>
@@ -636,7 +634,7 @@ struct alignment_of<const value_t> : alignment_of<value_t> {};
 template <typename value_t>
 struct alignment_of<const volatile value_t> : alignment_of<value_t> {};
 
-#if defined(__CUDACC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1800))
+#if defined(__HIPCC_RTC__) || (!defined(_MSC_VER) && (__cplusplus < 201103L)) || (defined(_MSC_VER) && (_MSC_VER < 1800))
 
 template <size_t Align>
 struct aligned_chunk;
@@ -705,7 +703,7 @@ using std::aligned_storage;
 
 #endif
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 /// Default deleter
 template <typename T>
 struct default_delete {

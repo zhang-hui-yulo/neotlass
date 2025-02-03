@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                     // CUTE_HOST_DEVICE
 #include <cute/util/type_traits.hpp>           // cute::__CUTE_REQUIRES
 #include <cute/container/tuple.hpp>            // cute::is_tuple

@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>          // CUTE_HOST_DEVICE
 #include <cute/numeric/math.hpp>    // cute::max, cute::min
 #include <cute/numeric/complex.hpp> // cute::conj

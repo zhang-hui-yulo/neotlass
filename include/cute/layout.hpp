@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 #include <cute/int_tuple.hpp>
 #include <cute/stride.hpp>
@@ -1866,7 +1868,7 @@ CUTE_HOST_DEVICE void print(Layout<Shape,Stride> const& layout)
   print(layout.shape()); print(":"); print(layout.stride());
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class Shape, class Stride>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, Layout<Shape,Stride> const& layout)
 {

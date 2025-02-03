@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                     // CUTE_HOST_DEVICE
 #include <cute/pointer_base.hpp>               // cute::iter_adaptor
 #include <cute/pointer_sparse.hpp>
@@ -404,7 +406,7 @@ CUTE_HOST_DEVICE void print(tmem_ptr<T> ptr)
 }
 
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <class T>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, gmem_ptr<T> ptr)
 {
@@ -430,6 +432,6 @@ CUTE_HOST std::ostream& operator<<(std::ostream& os, tmem_ptr<T> ptr)
   return os << "tmem_[" << int(sizeof_bits<T>::value) << "b](" << ptr.addr_ << ")";
 }
 
-#endif // !defined(__CUDACC_RTC__)
+#endif // !defined(__HIPCC_RTC__)
 
 } // end namespace cute

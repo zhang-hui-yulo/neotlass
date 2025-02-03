@@ -35,6 +35,8 @@
 
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>
 
 #include <cute/numeric/numeric_types.hpp>
@@ -556,8 +558,8 @@ void fill(array_subbyte<T,N>& a, T const& value)
 // Specialize tuple-related functionality for cute::array_subbyte
 //
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/tuple>
+#if defined(__HIPCC_RTC__)
+#include <hip/std/tuple>
 #else
 #include <tuple>
 #endif
@@ -628,7 +630,7 @@ struct tuple_element<I, const cute::array_subbyte<T,N>>
 namespace std
 {
 
-#if defined(__CUDACC_RTC__)
+#if defined(__HIPCC_RTC__)
 template <class... _Tp>
 struct tuple_size;
 

@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hip passed
+
 #include <cute/config.hpp>                     // CUTE_HOST_DEVICE
 #include <cute/numeric/integral_constant.hpp>  // cute::false_type, cute::true_type
 #include <cute/numeric/math.hpp>               // cute::signum
@@ -283,7 +285,7 @@ CUTE_HOST_DEVICE void print(R<a,b>) {
   print(C<a>{}); print("/"); print(C<b>{});
 }
 
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 template <auto a, auto b>
 CUTE_HOST std::ostream& operator<<(std::ostream& os, R<a,b>) {
   return os << "_" << C<a>{} << "/" << C<b>{};
