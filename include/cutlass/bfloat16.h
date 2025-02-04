@@ -102,7 +102,7 @@ public:
   /// Default constructor
   bfloat16_t() = default;
 
-  /// Reinterpret cast from CUDA's __nv_bfloat16 type
+  /// Reinterpret cast from CUDA's __hip_bfloat16 type
   CUTLASS_HOST_DEVICE
   explicit bfloat16_t(__hip_bfloat16 const & x) {
     #if defined(__HIP_DEVICE_COMPILE__)

@@ -17,7 +17,7 @@ namespace cute {
 template <bool opsel = false>
 struct GFX11_16x16x16_F16F16F16F16_TN
 {
-  typedef _Float16 half_t16 __attribute__((ext_vector_type(16)));
+  using half_t16 = _Float16 __attribute__((ext_vector_type(16)));
   using DRegisters = half_t16[1];
   using ARegisters = half_t16[1];
   using BRegisters = half_t16[1];
@@ -32,8 +32,32 @@ struct GFX11_16x16x16_F16F16F16F16_TN
 #if defined(CUTE_ARCH_MMA_GFX11_ENABLED)
     d0 = __builtin_amdgcn_wmma_f16_16x16x16_f16_w32(a0, b0, c0, opsel);
 #else
-    CUTE_INVALID_CONTROL_PATH("Attempting to use GFX10_16x16x16_F16F16F16F16_TN without CUTE_ARCH_MMA_GFX10_ENABLED");
+    CUTE_INVALID_CONTROL_PATH("Attempting to use GFX11_16x16x16_F16F16F16F16_TN without CUTE_ARCH_MMA_GFX10_ENABLED");
 #endif
   }
 };
+
+template <bool opsel = false>
+struct GFX11_16x16x16_BF16BF16BF16BF16_TN
+{
+    typedef unsigned short bf16_16 __attribute__((ext_vector_type(16)));
+    using DRegisters = bf16_16[1];
+    using ARegisters = bf16_16[1];
+    using BRegisters = bf16_16[1];
+    using CRegisters = bf16_16[1];
+
+    CUTE_HOST_DEVICE static void
+        fma(bf16_16        & d0,
+            bf16_16   const& a0,
+            bf16_16   const& b0,
+            bf16_16   const& c0)
+    {
+#if defined(CUTE_ARCH_MMA_GFX11_ENABLED)
+        d0 = __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w32(a0, b0, c0, opsel);
+#else
+        CUTE_INVALID_CONTROL_PATH("Attempting to use GFX11_16x16x16_BF16BF16BF16BF16_TN without CUTE_ARCH_MMA_GFX10_ENABLED");
+#endif
+    }
+};
+
 }
