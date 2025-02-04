@@ -69,10 +69,10 @@ template <>
 struct MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TN<false>>
      : MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<false>>
 {
-    using ValTypeD = __hip_bfloat16;
-    using ValTypeA = __hip_bfloat16;
-    using ValTypeB = __hip_bfloat16;
-    using ValTypeC = __hip_bfloat16;
+    using ValTypeD = bfloat16_t;
+    using ValTypeA = bfloat16_t;
+    using ValTypeB = bfloat16_t;
+    using ValTypeC = bfloat16_t;
 
     using FrgTypeC = GFX11FrgTypeAccum<ValTypeC, false>;
 };
