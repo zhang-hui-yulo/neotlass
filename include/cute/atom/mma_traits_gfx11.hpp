@@ -66,6 +66,18 @@ struct MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<true>>
 };
 
 template <>
+struct MMA_Traits<GFX11_16x16x16_F16F16F16F16_TIED_TN<false>>
+     : MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<false>> {};
+
+template <>
+struct MMA_Traits<GFX11_16x16x16_F16F16F16F16_TIED_TN<true>>
+     : MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<true>> {};
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// bf16 = bf16 * bf16 + bf16 ////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template <>
 struct MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TN<false>>
      : MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<false>>
 {
@@ -83,5 +95,13 @@ struct MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TN<true>>
 {
     using FrgTypeC = GFX11FrgTypeAccum<ValTypeC, true>;
 };
+
+template <>
+struct MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TIED_TN<false>>
+     : MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TN<false>> {};
+
+template <>
+struct MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TIED_TN<true>>
+     : MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TN<true>> {};
 
 }

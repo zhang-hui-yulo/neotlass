@@ -348,7 +348,7 @@ int main() {
         Dptr = Dptr_host;
         hipFuncSetAttribute((const void*)gemm_multi_stage<decltype(gemm_config)>,
             hipFuncAttributeMaxDynamicSharedMemorySize, shm_size);
-        
+
         gemm_multi_stage<decltype(gemm_config)>
             <<<grid, block, shm_size>>> (Dptr.data().get(), Aptr.data().get(), Bptr.data().get(), M, N, K);
     }
