@@ -22,15 +22,9 @@ using bfloat16_t_16 = short __attribute__((ext_vector_type(16)));
 
 using int32_t_8 = int32_t __attribute__((ext_vector_type(8)));
 
-using uint32_t_8 = uint32_t __attribute__((ext_vector_type(8)));
+using int8_t_16 = int32_t __attribute__((ext_vector_type(4)));
 
-using int8_t_16 = int8_t __attribute__((ext_vector_type(16)));
-
-using uint8_t_16 = uint8_t __attribute__((ext_vector_type(16)));
-
-using int4_t_16 = int8_t __attribute__((ext_vector_type(8)));
-
-using uint4_t_16 = uint8_t __attribute__((ext_vector_type(8)));
+using int4_t_16 = int32_t __attribute__((ext_vector_type(2)));
 
 }
 
@@ -77,7 +71,7 @@ struct GFX11_16x16x16_F32BF16BF16F32_TN
 #if defined(CUTE_ARCH_MMA_GFX11_W32_ENABLED)
         d0 = __builtin_amdgcn_wmma_f32_16x16x16_bf16_w32(a0, b0, c0);
 #else
-        CUTE_INVALID_CONTROL_PATH("Attempting to use GFX11_16x16x16_F32F16F16F32_TN without CUTE_ARCH_MMA_GFX11_W32_ENABLED");
+        CUTE_INVALID_CONTROL_PATH("Attempting to use GFX11_16x16x16_F32BF16BF16F32_TN without CUTE_ARCH_MMA_GFX11_W32_ENABLED");
 #endif
     }
 };
@@ -148,7 +142,7 @@ struct GFX11_16x16x16_F16F16F16F16_TIED_TN
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// MMA 16x8x16 TN
+// MMA 16x16x16 TN
 template <bool opsel = false>
 struct GFX11_16x16x16_BF16BF16BF16BF16_TN
 {
@@ -173,7 +167,7 @@ struct GFX11_16x16x16_BF16BF16BF16BF16_TN
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// MMA 16x8x16 TIED TN
+// MMA 16x16x16 TIED TN
 template <bool opsel = false>
 struct GFX11_16x16x16_BF16BF16BF16BF16_TIED_TN
 {
@@ -195,6 +189,64 @@ struct GFX11_16x16x16_BF16BF16BF16BF16_TIED_TN
         d0 = __builtin_amdgcn_wmma_bfloat16_t_16x16x16_bf16_tied_w32(a0, b0, c0, opsel);
 #else
         CUTE_INVALID_CONTROL_PATH("Attempting to use GFX11_16x16x16_BF16BF16BF16BF16_TIED_TN without CUTE_ARCH_MMA_GFX11_W32_ENABLED");
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// MMA 16x16x16 TN
+template <bool ASigned = true, bool BSigned = true, bool CSigned = true>
+struct GFX11_16x16x16_I32IU8IU8I32_TN
+{
+    using DRegisters = int32_t_8[1];
+    using ARegisters = int8_t_16[1];
+    using BRegisters = int8_t_16[1];
+    using CRegisters = int32_t_8[1];
+
+    CUTE_HOST_DEVICE static void
+    fma(int32_t_8        & d0,
+        int8_t_16   const& a0,
+        int8_t_16   const& b0,
+        int32_t_8   const& c0)
+    {
+#if defined(CUTE_ARCH_MMA_GFX11_W32_ENABLED)
+        /*
+        *  Signed means the input is signed or unsigned, e.g.
+        *  ASigned it true means a0 is i8, or a0 is u8.
+        */
+        d0 = __builtin_amdgcn_wmma_i32_16x16x16_iu8_w32(ASigned, a0, BSigned, b0, c0, CSigned);
+#else
+        CUTE_INVALID_CONTROL_PATH("Attempting to use GFX11_16x16x16_I32IU8IU8I32_TN without CUTE_ARCH_MMA_GFX11_W32_ENABLED");
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// MMA 16x16x16 TN
+template <bool ASigned = true, bool BSigned = true, bool CSigned = true>
+struct GFX11_16x16x16_I32IU4IU4I32_TN
+{
+    using DRegisters = int32_t_8[1];
+    using ARegisters = int4_t_16[1];
+    using BRegisters = int4_t_16[1];
+    using CRegisters = int32_t_8[1];
+
+    CUTE_HOST_DEVICE static void
+    fma(int32_t_8        & d0,
+        int4_t_16   const& a0,
+        int4_t_16   const& b0,
+        int32_t_8   const& c0)
+    {
+#if defined(CUTE_ARCH_MMA_GFX11_W32_ENABLED)
+        /*
+        *  Signed means the input is signed or unsigned, e.g.
+        *  ASigned it true means a0 is i8, or a0 is u8.
+        */
+        d0 = __builtin_amdgcn_wmma_i32_16x16x16_iu4_w32(ASigned, a0, BSigned, b0, c0, CSigned);
+#else
+        CUTE_INVALID_CONTROL_PATH("Attempting to use GFX11_16x16x16_I32IU4IU4I32_TN without CUTE_ARCH_MMA_GFX11_W32_ENABLED");
 #endif
     }
 };

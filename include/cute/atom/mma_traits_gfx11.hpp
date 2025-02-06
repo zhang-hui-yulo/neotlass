@@ -133,4 +133,52 @@ template <>
 struct MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TIED_TN<true>>
      : MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TN<true>> {};
 
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// i32 = iu8 * iu8 + iu32 ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template<>
+struct MMA_Traits<GFX11_16x16x16_I32IU8IU8I32_TN<>>
+     : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
+{
+    using ValTypeD = int32_t;
+    using ValTypeA = int8_t;
+    using ValTypeB = int8_t;
+    using ValTypeC = int32_t;
+};
+
+template<>
+struct MMA_Traits<GFX11_16x16x16_I32IU8IU8I32_TN<false, false, false>>
+     : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
+{
+    using ValTypeD = int32_t;
+    using ValTypeA = uint8_t;
+    using ValTypeB = uint8_t;
+    using ValTypeC = int32_t;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// i32 = iu4 * iu4 + iu32 ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template<>
+struct MMA_Traits<GFX11_16x16x16_I32IU4IU4I32_TN<>>
+     : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
+{
+    using ValTypeD = int32_t;
+    using ValTypeA = int4_t;
+    using ValTypeB = int4_t;
+    using ValTypeC = int32_t;
+};
+
+template<>
+struct MMA_Traits<GFX11_16x16x16_I32IU4IU4I32_TN<false, false, false>>
+     : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
+{
+    using ValTypeD = int32_t;
+    using ValTypeA = uint4_t;
+    using ValTypeB = uint4_t;
+    using ValTypeC = int32_t;
+};
+
 }
