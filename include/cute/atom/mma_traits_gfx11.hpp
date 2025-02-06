@@ -38,11 +38,46 @@ struct CUTE_ALIGNAS(4) GFX11FrgTypeAccum {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//////////////////////// fp32 = fp16 * fp16 + fp32 ////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template <>
+struct MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
+{
+    using ValTypeD = float;
+    using ValTypeA = half_t;
+    using ValTypeB = half_t;
+    using ValTypeC = float;
+
+    using Shape_MNK = Shape<_16, _16, _16>;
+    using ThrID = Layout<_32>;
+    using ALayout = GFX11_16x16_Row;
+    using BLayout = GFX11_16x16_Row;
+    using CLayout = GFX11_16x16_32b;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////// fp32 = bf16 * bf16 + fp32 ////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+template <>
+struct MMA_Traits<GFX11_16x16x16_F32BF16BF16F32_TN>
+     : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
+{
+    using ValTypeD = float;
+    using ValTypeA = bfloat16_t;
+    using ValTypeB = bfloat16_t;
+    using ValTypeC = float;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 //////////////////////// fp16 = fp16 * fp16 + fp16 ////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
 struct MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<false>>
+     : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
 {
     using ValTypeD = half_t;
     using ValTypeA = half_t;
@@ -50,12 +85,6 @@ struct MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<false>>
     using ValTypeC = half_t;
 
     using FrgTypeC = GFX11FrgTypeAccum<ValTypeC, false>;
-
-    using Shape_MNK = Shape<_16, _16, _16>;
-    using ThrID = Layout<_32>;
-    using ALayout = GFX11_16x16_Row;
-    using BLayout = GFX11_16x16_Row;
-    using CLayout = GFX11_16x16_32b;
 };
 
 template <>
@@ -79,7 +108,7 @@ struct MMA_Traits<GFX11_16x16x16_F16F16F16F16_TIED_TN<true>>
 
 template <>
 struct MMA_Traits<GFX11_16x16x16_BF16BF16BF16BF16_TN<false>>
-     : MMA_Traits<GFX11_16x16x16_F16F16F16F16_TN<false>>
+     : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
 {
     using ValTypeD = bfloat16_t;
     using ValTypeA = bfloat16_t;
