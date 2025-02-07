@@ -151,10 +151,10 @@ template<>
 struct MMA_Traits<GFX11_16x16x16_I32IU8IU8I32_TN<false, false, false>>
      : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
 {
-    using ValTypeD = int32_t;
+    using ValTypeD = uint32_t;
     using ValTypeA = uint8_t;
     using ValTypeB = uint8_t;
-    using ValTypeC = int32_t;
+    using ValTypeC = uint32_t;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -175,10 +175,10 @@ template<>
 struct MMA_Traits<GFX11_16x16x16_I32IU4IU4I32_TN<false, false, false>>
      : MMA_Traits<GFX11_16x16x16_F32F16F16F32_TN>
 {
-    using ValTypeD = int32_t;
+    using ValTypeD = uint32_t;
     using ValTypeA = uint4_t;
     using ValTypeB = uint4_t;
-    using ValTypeC = int32_t;
+    using ValTypeC = uint32_t;
 };
 
 }
