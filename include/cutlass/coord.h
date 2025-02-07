@@ -34,8 +34,10 @@
 
 #pragma once
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/cstdint>
+// hip passed
+
+#if defined(__HIPCC_RTC__)
+#include <hip/std/cstdint>
 #else
 #include <cstdint>
 #endif

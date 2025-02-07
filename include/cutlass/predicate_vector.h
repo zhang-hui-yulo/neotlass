@@ -34,13 +34,13 @@
 */
 #pragma once
 
-#if defined(__CUDACC_RTC__)
-#include <cuda/std/cstdint>
+#if defined(__HIPCC_RTC__)
+#include <hip/std/cstdint>
 #else
 #include <cstdint>
 #endif
 
-#include <cuda/std/cassert>
+#include <cassert>
 
 #include "cutlass/cutlass.h"
 #include "cutlass/platform/platform.h"

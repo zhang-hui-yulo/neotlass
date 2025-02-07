@@ -35,6 +35,8 @@
 
 #pragma once
 
+// hip passed
+
 #include "cutlass/cutlass.h"
 #include "cutlass/numeric_types.h"
 

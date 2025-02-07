@@ -35,6 +35,8 @@
 
 #pragma once
 
+// hip passed
+
 #include <cutlass/detail/helper_macros.hpp> // CUTLASS_DEVICE
 
 namespace cutlass {

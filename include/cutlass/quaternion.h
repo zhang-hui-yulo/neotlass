@@ -34,6 +34,8 @@
 */
 #pragma once
 
+// hip passed
+
 #include "cutlass/cutlass.h"
 #include "cutlass/functional.h"
 #include "cutlass/array.h"

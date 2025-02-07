@@ -35,7 +35,8 @@
 
 #pragma once
 
-#include "cutlass/arch/synclog.hpp"
+// hip passed
+
 #include "cutlass/detail/helper_macros.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,18 +93,13 @@ static char const* cutlassGetStatusString(cutlass::Status status) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const int NumThreadsPerWarp = 32;
-static const int NumThreadsPerWarpGroup = 128;
-static const int NumWarpsPerWarpGroup = NumThreadsPerWarpGroup / NumThreadsPerWarp;
-static const int NumThreadsPerHalfWarp = NumThreadsPerWarp / 2;
-static const int NumThreadsPerQuad = 4;
-static const int NumThreadsPerQuadPair = NumThreadsPerQuad * 2;
+static const int NumThreadsPerWarp = __AMDGCN_WAVEFRONT_SIZE__;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Helper function to return true when called by thread 0 of threadblock 0.
 CUTLASS_HOST_DEVICE bool thread0() {
-  #if defined(__CUDA_ARCH__)
+  #if defined(__HIP_DEVICE_COMPILE__)
     return (!threadIdx.x && !threadIdx.y && !threadIdx.z) && (!blockIdx.x && !blockIdx.y && !blockIdx.z);
   #else
     return false;
@@ -113,19 +109,8 @@ CUTLASS_HOST_DEVICE bool thread0() {
 /// Returns a lane index in the warp. The threads in warp may not be convergent
 CUTLASS_DEVICE
 int canonical_lane_idx() { 
-  #if defined(__CUDA_ARCH__)
+  #if defined(__HIP_DEVICE_COMPILE__)
     return threadIdx.x % NumThreadsPerWarp;
-  #else
-    return 0;
-  #endif
-}
-
-/// Returns a warp-uniform value indicating the canonical warp index of the calling threads.
-/// Threads within the warp must be converged.
-CUTLASS_DEVICE
-int canonical_warp_idx_sync() { 
-  #if defined(__CUDA_ARCH__)
-    return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarp, 0);
   #else
     return 0;
   #endif
@@ -135,19 +120,8 @@ int canonical_warp_idx_sync() {
 /// As it doesn't sync the warp, it faster and allows forward progress
 CUTLASS_DEVICE
 int canonical_warp_idx() { 
-  #if defined(__CUDA_ARCH__)
+  #if defined(__HIP_DEVICE_COMPILE__)
     return threadIdx.x / NumThreadsPerWarp;
-  #else
-    return 0;
-  #endif
-}
-
-/// Returns a warp-uniform value indicating the canonical warp group index of the calling threads.
-/// Threads within the warp must be converged.
-CUTLASS_DEVICE
-int canonical_warp_group_idx() {
-  #if defined(__CUDA_ARCH__)
-    return __shfl_sync(0xffffffff, threadIdx.x / NumThreadsPerWarpGroup, 0);
   #else
     return 0;
   #endif

@@ -35,7 +35,9 @@
 
 #pragma once
 
-#if !defined(__CUDACC_RTC__)
+// hip passed
+
+#if !defined(__HIPCC_RTC__)
 #include <iosfwd>
 #include <cmath>
 #endif

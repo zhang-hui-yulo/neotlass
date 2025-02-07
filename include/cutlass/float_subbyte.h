@@ -36,17 +36,11 @@
 */
 #pragma once
 
+// hip passed
+
 #include "cutlass/arch/config.h"
 #include "cutlass/float8.h"
 
-// FP4 types are available starting CUDA 12+
-#if (__CUDACC_VER_MAJOR__ >= 12)
-#define CUDA_FP4_ENABLED 1
-#endif
-
-#if (defined(CUTLASS_ARCH_MMA_SM100A_ENABLED))
-#  define CUDA_PTX_FP4FP6_CVT_ENABLED 1
-#endif
 #include "cutlass/cutlass.h"
 #include "cutlass/exmy_base.h"
 
@@ -552,7 +546,7 @@ struct sizeof_bits<detail::type_erased_dynamic_float4_unpacksmem_t> {
 // Standard Library operations and definitions
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#if !defined(__CUDACC_RTC__)
+#if !defined(__HIPCC_RTC__)
 namespace std {
 /// Numeric limits common to all float4 types
 template <typename T>

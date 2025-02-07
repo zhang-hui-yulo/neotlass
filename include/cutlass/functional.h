@@ -46,10 +46,6 @@
 
 #include <hip/hip_runtime.h>
 
-#if defined(CUTLASS_ARCH_WMMA_ENABLED)
-#include <mma.h>
-#endif // defined(CUTLASS_ARCH_WMMA_ENABLED)
-
 #ifdef _MSC_VER
 // Provides support for alternate operators such as 'and', 'or', ...
 #include <ciso646>

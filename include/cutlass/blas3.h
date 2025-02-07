@@ -37,6 +37,8 @@
 
 #pragma once
 
+// hip passed
+
 #include "cutlass/cutlass.h"
 #include "cutlass/array.h"
 #include "cutlass/blas3_types.h"

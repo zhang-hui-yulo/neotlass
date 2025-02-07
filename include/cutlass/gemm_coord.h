@@ -31,6 +31,8 @@
 
 #pragma once
 
+// hip passed
+
 #include "cutlass/coord.h"
 
 namespace cutlass {

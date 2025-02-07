@@ -30,6 +30,8 @@
  **************************************************************************************************/
 #pragma once
 
+// hiup passed
+
 // Simply import .h version of header so as to avoid breaking any existing CUTLASS builds
 // after .hpp was changed to .h
 #include "cutlass/kernel_hardware_info.h"
